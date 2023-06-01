@@ -1,18 +1,8 @@
-module.exports = function Controller(Service, options = {}) {
+const stripe = require('stripe')('sk_test_51N5c57DvWceembxrXkEdX58VdahYNRbL8K6RJ1ccILUpfzRjBfS0jN1ynp49Vi9NT6tL0StibUaOlO1ZGzCKdOvc00nmraV4lI')
+module.exports = function PaymentController(Service, options = {}) {
     return {
         getAll: async (req, res) => {
-            const {page, itemsPerPage, order, ...filters} = req.query;
-            try {
-                const results = await Service.findAll(filters, {
-                    order,
-                    limit: itemsPerPage,
-                    offset: (page - 1) * itemsPerPage,
-                });
-
-                res.json(results);
-            } catch (err) {
-                res.status(500).json(err);
-            }
+            res.send("tes")
         },
         getOne: async (req, res) => {
             const {id} = req.params;
@@ -25,17 +15,25 @@ module.exports = function Controller(Service, options = {}) {
             }
         },
         create: async (req, res) => {
-            const {body} = req;
-            try {
-                const result = await Service.create(body);
-                res.status(201).json(result);
-            } catch (err) {
-                if (err.name === "ValidationError") {
-                    res.status(422).json(err.errors);
-                } else {
-                    res.status(500).json(err);
-                }
-            }
+            console.log("ok")
+            const session = await stripe.checkout.sessions.create({
+                line_items: [
+                    {
+                        price_data: {
+                            currency: 'usd',
+                            product_data: {
+                                name: 'T-shirt',
+                            },
+                            unit_amount: 2000,
+                        },
+                        quantity: 1,
+                    },
+                ],
+                mode: 'payment',
+                success_url: 'http://localhost:5173/payment',
+                cancel_url: 'http://localhost:5173/payment',
+            });
+            res.json({ redirectUrl: session.url });
         },
         replace: async (req, res) => {
             const {id} = req.params;

@@ -1,6 +1,10 @@
 const express = require("express");
+var cors = require('cors')
 const app = express();
 const UserRouter = require("./routes/user");
+const PaymentsRouter = require("./routes/payment");
+
+app.use(cors())
 
 app.use((req, res, next) => {
   if (
@@ -16,6 +20,8 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 app.use("/users", UserRouter);
+
+app.use("/payments", PaymentsRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
